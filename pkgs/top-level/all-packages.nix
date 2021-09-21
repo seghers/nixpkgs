@@ -141,6 +141,8 @@ with pkgs;
     autoconf = autoconf269;
   };
 
+  autorestic = callPackage ../tools/backup/autorestic { };
+
   autoPatchelfHook = makeSetupHook { name = "auto-patchelf-hook"; }
     ../build-support/setup-hooks/auto-patchelf.sh;
 
@@ -447,10 +449,12 @@ with pkgs;
 
   fetchfossil = callPackage ../build-support/fetchfossil { };
 
-  fetchgit = callPackage ../build-support/fetchgit {
+  fetchgit = (callPackage ../build-support/fetchgit {
     git = buildPackages.gitMinimal;
     cacert = buildPackages.cacert;
     git-lfs = buildPackages.git-lfs;
+  }) // { # fetchgit is a function, so we use // instead of passthru.
+    tests = callPackages ../build-support/fetchgit/tests.nix {};
   };
 
   fetchgitLocal = callPackage ../build-support/fetchgitlocal { };
@@ -599,6 +603,15 @@ with pkgs;
   };
 
   installShellFiles = callPackage ../build-support/install-shell-files {};
+
+  # See doc/builders/special/invalidateFetcherByDrvHash.section.md or
+  # https://nixos.org/manual/nixpkgs/unstable/#sec-pkgs-invalidateFetcherByDrvHash
+  invalidateFetcherByDrvHash = f: args:
+    let
+      drvPath = (f args).drvPath;
+      # It's safe to discard the context, because we don't access the path.
+      salt = builtins.unsafeDiscardStringContext (lib.substring 0 12 (baseNameOf drvPath));
+    in f (args // { name = "${args.name or "source"}-salted-${salt}"; });
 
   lazydocker = callPackage ../tools/misc/lazydocker { };
 
@@ -1095,6 +1108,10 @@ with pkgs;
   amazon-ecs-cli = callPackage ../tools/virtualization/amazon-ecs-cli { };
 
   amber = callPackage ../tools/text/amber {
+    inherit (darwin.apple_sdk.frameworks) Security;
+  };
+
+  amber-secret = callPackage ../tools/security/amber {
     inherit (darwin.apple_sdk.frameworks) Security;
   };
 
@@ -2990,6 +3007,8 @@ with pkgs;
   ink = callPackage ../tools/misc/ink { };
 
   inklecate = callPackage ../development/compilers/inklecate {};
+
+  intensity-normalization = with python3Packages; toPythonApplication intensity-normalization;
 
   interactsh = callPackage ../tools/misc/interactsh { };
 
@@ -8021,6 +8040,8 @@ with pkgs;
 
   pamtester = callPackage ../tools/security/pamtester { };
 
+  pantheon-tweaks = callPackage ../applications/system/pantheon-tweaks { };
+
   paperless-ng = callPackage ../applications/office/paperless-ng { };
 
   paperwork = callPackage ../applications/office/paperwork/paperwork-gtk.nix { };
@@ -8070,6 +8091,8 @@ with pkgs;
   };
 
   pick = callPackage ../tools/misc/pick { };
+
+  pipe-rename = callPackage ../tools/misc/pipe-rename { };
 
   pitivi = callPackage ../applications/video/pitivi { };
 
@@ -8754,6 +8777,7 @@ with pkgs;
 
   rpm = callPackage ../tools/package-management/rpm {
     python = python3;
+    lua = lua5_4;
   };
 
   rpm-ostree = callPackage ../tools/misc/rpm-ostree {
@@ -8801,6 +8825,8 @@ with pkgs;
   ruplacer = callPackage ../tools/text/ruplacer {
     inherit (darwin.apple_sdk.frameworks) Security;
   };
+
+  rust-petname = callPackage ../tools/text/rust-petname { };
 
   rustscan = callPackage ../tools/security/rustscan {
     inherit (darwin.apple_sdk.frameworks) Security;
@@ -12352,6 +12378,9 @@ with pkgs;
     inherit (darwin.apple_sdk.frameworks) CoreFoundation Security;
   };
   cargo-criterion = callPackage ../development/tools/rust/cargo-criterion { };
+  cargo-deadlinks = callPackage ../development/tools/rust/cargo-deadlinks {
+    inherit (darwin.apple_sdk.frameworks) Security;
+  };
   cargo-deb = callPackage ../tools/package-management/cargo-deb {
     inherit (darwin.apple_sdk.frameworks) Security;
   };
@@ -12363,6 +12392,7 @@ with pkgs;
   cargo-kcov = callPackage ../tools/package-management/cargo-kcov { };
   cargo-graph = callPackage ../tools/package-management/cargo-graph { };
   cargo-license = callPackage ../tools/package-management/cargo-license { };
+  cargo-llvm-lines = callPackage ../development/tools/rust/cargo-llvm-lines { };
   cargo-outdated = callPackage ../tools/package-management/cargo-outdated {};
   cargo-release = callPackage ../tools/package-management/cargo-release {
     inherit (darwin.apple_sdk.frameworks) Security;
@@ -12390,6 +12420,10 @@ with pkgs;
   cargo-deny = callPackage ../development/tools/rust/cargo-deny {
     inherit (darwin.apple_sdk.frameworks) Security;
   };
+  cargo-dephell = callPackage ../development/tools/rust/cargo-dephell {
+    inherit (darwin.apple_sdk.frameworks) Security;
+  };
+  cargo-diet = callPackage ../development/tools/rust/cargo-diet { };
   cargo-embed = callPackage ../development/tools/rust/cargo-embed {
     inherit (darwin.apple_sdk.frameworks) AppKit;
   };
@@ -12424,8 +12458,12 @@ with pkgs;
   };
   cargo-readme = callPackage ../development/tools/rust/cargo-readme {};
   cargo-sort = callPackage ../development/tools/rust/cargo-sort { };
+  cargo-spellcheck = callPackage ../development/tools/rust/cargo-spellcheck { };
   cargo-sweep = callPackage ../development/tools/rust/cargo-sweep { };
   cargo-sync-readme = callPackage ../development/tools/rust/cargo-sync-readme {};
+  cargo-tally = callPackage ../development/tools/rust/cargo-tally {
+    inherit (darwin.apple_sdk.frameworks) DiskArbitration Foundation IOKit;
+  };
   cargo-udeps = callPackage ../development/tools/rust/cargo-udeps {
     inherit (darwin.apple_sdk.frameworks) CoreServices Security SystemConfiguration;
   };
@@ -13061,7 +13099,7 @@ with pkgs;
   pipewire = callPackage ../development/libraries/pipewire {};
   pipewire_0_2 = callPackage ../development/libraries/pipewire/0.2.nix {};
 
-  pyradio = callPackage ../applications/radio/pyradio {};
+  pyradio = callPackage ../applications/audio/pyradio {};
 
   pyrex = pyrex095;
 
@@ -13146,7 +13184,10 @@ with pkgs;
 
   self = pkgsi686Linux.callPackage ../development/interpreters/self { };
 
-  spark = callPackage ../applications/networking/cluster/spark { };
+  inherit (callPackages ../applications/networking/cluster/spark { hadoop = hadoop_3_1; })
+    spark3
+    spark2;
+  spark = spark3;
 
   sparkleshare = callPackage ../applications/version-management/sparkleshare { };
 
@@ -13983,6 +14024,8 @@ with pkgs;
   fujprog = callPackage ../development/embedded/fpga/fujprog {
     inherit (darwin.apple_sdk.frameworks) IOKit;
   };
+
+  fundoc = callPackage ../development/tools/fundoc { };
 
   funnelweb = callPackage ../development/tools/literate-programming/funnelweb { };
 
@@ -19890,11 +19933,11 @@ with pkgs;
   cassandra = cassandra_3_11;
 
   apache-jena = callPackage ../servers/nosql/apache-jena/binary.nix {
-    java = jdk8; # TODO: remove override https://github.com/NixOS/nixpkgs/pull/89731
+    java = jre;
   };
 
   apache-jena-fuseki = callPackage ../servers/nosql/apache-jena/fuseki-binary.nix {
-    java = jdk8; # TODO: remove override https://github.com/NixOS/nixpkgs/pull/89731
+    java = jre;
   };
 
   apcupsd = callPackage ../servers/apcupsd { };
@@ -21108,6 +21151,10 @@ with pkgs;
 
   cpufrequtils = callPackage ../os-specific/linux/cpufrequtils { };
 
+  cpupower-gui = python3Packages.callPackage ../os-specific/linux/cpupower-gui {
+    inherit (pkgs) meson;
+  };
+
   cpuset = callPackage ../os-specific/linux/cpuset {
     pythonPackages = python3Packages;
   };
@@ -21813,6 +21860,8 @@ with pkgs;
   rfkill_udev = callPackage ../os-specific/linux/rfkill/udev.nix { };
 
   riscv-pk = callPackage ../misc/riscv-pk { };
+
+  ristate = callPackage ../tools/misc/ristate { };
 
   roccat-tools = callPackage ../os-specific/linux/roccat-tools { };
 
@@ -24577,7 +24626,7 @@ with pkgs;
   gitolite = callPackage ../applications/version-management/gitolite { };
 
   gitoxide = callPackage ../applications/version-management/gitoxide {
-    inherit (darwin.apple_sdk.frameworks) Security;
+    inherit (darwin.apple_sdk.frameworks) Security SystemConfiguration;
   };
 
   inherit (gnome) gitg;
@@ -24848,6 +24897,10 @@ with pkgs;
 
   homebank = callPackage ../applications/office/homebank {
     gtk = gtk3;
+  };
+
+  hors = callPackage ../development/tools/hors {
+    inherit (darwin.apple_sdk.frameworks) Security;
   };
 
   hover = callPackage ../development/tools/hover { };
@@ -27121,6 +27174,8 @@ with pkgs;
   shotgun = callPackage ../tools/graphics/shotgun {};
 
   shutter = callPackage ../applications/graphics/shutter { };
+
+  sic-image-cli = callPackage ../tools/graphics/sic-image-cli { };
 
   simple-scan = gnome.simple-scan;
 
@@ -32025,6 +32080,8 @@ with pkgs;
   sqsh = callPackage ../development/tools/sqsh { };
 
   sumneko-lua-language-server = callPackage ../development/tools/sumneko-lua-language-server { };
+
+  sysz = callPackage  ../tools/misc/sysz { };
 
   go-swag = callPackage ../development/tools/go-swag { };
 

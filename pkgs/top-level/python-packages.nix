@@ -3650,6 +3650,8 @@ in {
 
   intelhex = callPackage ../development/python-modules/intelhex { };
 
+  intensity-normalization = callPackage ../development/python-modules/intensity-normalization { };
+
   internetarchive = callPackage ../development/python-modules/internetarchive { };
 
   interruptingcow = callPackage ../development/python-modules/interruptingcow { };
@@ -5163,6 +5165,8 @@ in {
   ordered-set = callPackage ../development/python-modules/ordered-set { };
 
   orderedset = callPackage ../development/python-modules/orderedset { };
+
+  orjson = callPackage ../development/python-modules/orjson { };
 
   orm = callPackage ../development/python-modules/orm { };
 
@@ -7147,6 +7151,10 @@ in {
   pytest-xprocess = callPackage ../development/python-modules/pytest-xprocess { };
 
   pytest-xvfb = callPackage ../development/python-modules/pytest-xvfb { };
+
+  python3-application = callPackage ../development/python-modules/python3-application { };
+
+  python3-eventlib = callPackage ../development/python-modules/python3-eventlib { };
 
   python3-openid = callPackage ../development/python-modules/python3-openid { };
 
