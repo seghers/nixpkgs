@@ -1,16 +1,16 @@
-{ stdenv, fetchurl, lib, darwin, openssl }:
+{ stdenv, fetchurl, lib, darwin }:
 
 # Based on https://projects.archlinux.org/svntogit/packages.git/tree/trunk/PKGBUILD
 stdenv.mkDerivation rec {
   pname = "live555";
-  version = "2021.08.24";
+  version = "2019.11.22";
 
   src = fetchurl { # the upstream doesn't provide a stable URL
     urls = [
       "mirror://sourceforge/slackbuildsdirectlinks/live.${version}.tar.gz"
       "https://download.videolan.org/contrib/live555/live.${version}.tar.gz"
     ];
-    sha256 = "1v13p41n7530bqlcqjkmfq7cc4dp562rn4nwz5cyj63dkz3s35ff";
+    sha256 = "144y2wsfpaclkj7srx85f3y3parzn7vbjmzc2afc62wdsb9gn46d";
   };
 
   postPatch = ''
@@ -49,8 +49,6 @@ stdenv.mkDerivation rec {
   '';
 
   nativeBuildInputs = lib.optional stdenv.isDarwin darwin.cctools;
-
-  buildInputs = [ openssl ];
 
   enableParallelBuilding = true;
 
